@@ -1,0 +1,51 @@
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  triage:
+    if: github.event.sender.type != 'Bot'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Triage issue with Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowed-tools "Bash(gh label list:*),Bash(gh label create:*),Bash(gh issue edit:*),Bash(gh issue view:*),Bash(gh issue comment:*)"'
+          prompt: |
+            You are triaging GitHub issue #${{ github.event.issue.number }} in repo ${{ github.repository }}.
+
+            Steps (do them in order, in English):
+            1. Run `gh issue view ${{ github.event.issue.number }}` to read the current title and body.
+            2. Run `gh label list --limit 100` to see what labels already exist in this repo.
+            3. Pick 1–4 labels that best fit the issue. Prefer reusing existing labels. If none of the existing labels fits, create ONE new label with `gh label create <name> --description "<short>" --color <hex>` and use it. Do not create more than one new label per run.
+            4. Apply the chosen labels with `gh issue edit ${{ github.event.issue.number }} --add-label "label1,label2"`.
+            5. Post a single comment on the issue with `gh issue comment ${{ github.event.issue.number }} --body "<diagnosis>"` using this exact template:
+
+               ## Claude triage
+
+               **Type:** <bug | feature | refactor | docs | question | other>
+               **Severity:** <low | medium | high>
+               **Affected area:** <file paths or modules — be concrete, this is a small repo: game.js, index.html, style.css>
+
+               **Diagnosis:**
+               <2–5 sentences explaining the root cause if it's a bug, or the goal if it's a feature. Reference relevant functions/constants from game.js when possible.>
+
+               **Suggested approach:**
+               <Bullet list of 2–5 concrete steps a developer (or Claude) could follow to implement the fix/feature. Mention the specific functions or constants that need to change.>
+
+               **Labels applied:** <comma-separated list>
+
+            6. Do NOT edit the issue body or title. Only add labels and post the comment.
+            7. If this is a re-run because the issue was edited, your comment replaces nothing — just post a fresh one.
