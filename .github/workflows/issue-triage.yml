@@ -31,7 +31,7 @@ jobs:
             2. Run `gh label list --limit 100` to see what labels already exist in this repo.
             3. Pick 1–4 labels that best fit the issue. Prefer reusing existing labels. If none of the existing labels fits, create ONE new label with `gh label create <name> --description "<short>" --color <hex>` and use it. Do not create more than one new label per run.
             4. Apply the chosen labels with `gh issue edit ${{ github.event.issue.number }} --add-label "label1,label2"`.
-            5. Post a single comment on the issue with `gh issue comment ${{ github.event.issue.number }} --body "<diagnosis>"` using this exact template:
+            5. Post a single comment on the issue with `gh issue comment ${{ github.event.issue.number }} --body "<diagnosis>"` using this exact template. The comment body MUST be valid GitHub-Flavored Markdown (GFM) so GitHub renders it correctly: keep the `##` heading, `**bold**` labels, and bullet lists as shown; escape or quote any backticks, backslashes, or `$` inside the shell argument so Markdown formatting is preserved when passed to `gh`:
 
                ## Claude triage
 
